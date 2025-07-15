@@ -138,4 +138,4 @@ README.md       # este archivo
 
 ## 📄 Licencia
 
-MIT © TU\_NOMBRE
+MIT © Erick Kaito Kikuchi Yamamoto
