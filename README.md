@@ -4,138 +4,157 @@ Microservicio de gestión de citas médicas con Laravel y Vue 3
 
 ---
 
-## 💡 Descripción
+## Descripción
 
 Esta aplicación permite crear, listar y eliminar citas entre pacientes y doctores. Incluye:
 
-* **Backend**: Laravel 10 con endpoints RESTful (`/api/users`, `/api/appointments`, `/api/users/search`).
-* **Frontend**: Vue 3 (Composition API) con un sistema ligero de toasts y selector de zona horaria.
-* Validación de solapamiento de citas en backend (misma franja horaria para un doctor).
-* Ejemplo de migración para crear usuarios iniciales (3 pacientes y 3 doctores).
+- **Backend**: Laravel 10 con endpoints RESTful (`/api/users`, `/api/appointments`, `/api/users/search`).
+- **Frontend**: Vue 3 (Composition API) con sistema de toasts propio y selector de zona horaria.
+- Validación de solapamiento de citas en backend (misma franja horaria para un doctor).
+- Migración de ejemplo para crear usuarios iniciales (3 pacientes y 3 doctores).
 
 ---
 
-## ⚙️ Requisitos
+## Requisitos
 
-* PHP ≥ 8.1
-* Composer
-* Node.js ≥ 18
-* NPM o Yarn
-* Base de datos PostgreSQL (u otro soportado)
+- PHP >= 8.1
+- Composer
+- Node.js >= 18
+- NPM o Yarn
+- PostgreSQL (u otra base de datos compatible)
 
 ---
 
-## 🚀 Instalación
+## Instalación
 
-1. **Clona el repositorio**
-
+1. Clona el repositorio:
    ```bash
    git clone git@github.com:TU_USUARIO/appointment-test-application.git
    cd appointment-test-application
    ```
-
-2. **Copia el entorno**
-
+2. Copia el entorno:
    ```bash
    cp .env.example .env
    ```
-
-3. **Configura `.env`**
-
-   * Genera `APP_KEY`:
-
-     ```bash
-     php artisan key:generate
-     ```
-   * Completa variables de BD (`DB_...`), mail (`MAIL_...`), Pusher o tokens si aplica.
-
-4. **Instala dependencias**
-
+3. Genera la clave de aplicación:
+   ```bash
+   php artisan key:generate
+   ```
+4. Ajusta variables en `.env` (base de datos, correo, zona horaria, Mailtrap, Pusher, etc.).
+5. Instala dependencias:
    ```bash
    composer install
-   npm install
-   # o yarn
+   npm install  # o yarn
    ```
-
-5. **Migra y seed**
-
+6. Ejecuta migraciones y seeds:
    ```bash
    php artisan migrate
-   php artisan db:seed  # si tienes seeders o usa migrate:refresh --seed
+   php artisan db:seed  # si tienes seeders
    ```
-
-6. **Compila assets**
-
+7. Compila assets:
    ```bash
-   npm run dev  # para desarrollo con Vite
-   npm run build  # para producción
+   npm run dev    # desarrollo
+   npm run build  # producción
    ```
-
-7. **Corre el servidor**
-
+8. Inicia el servidor:
    ```bash
    php artisan serve
    ```
 
-Accede en `http://localhost:8000` (o en el dominio configurado).
+Accede en `http://localhost:8000`.
 
 ---
 
-## 🗂 Estructura principal
+## Estructura principal
 
 ```
-app/            # Código de Laravel
-  Http/Controllers/AppointmentController.php
-  Http/Requests/StoreAppointmentRequest.php
-  Models/Appointment.php
-  Models/User.php
-database/       # migraciones y seeds
-public/         # assets compilados
-resources/js/   # código Vue (components, composables)
-.env.example    # config de entorno
-README.md       # este archivo
+app/
+  Http/
+    Controllers/AppointmentController.php
+    Requests/StoreAppointmentRequest.php
+  Models/
+    Appointment.php
+    User.php
+database/
+  migrations/
+public/
+resources/js/
+  components/
+  composables/
+.env.example
+README.md
 ```
 
 ---
 
-## 📦 Endpoints API
+## Endpoints API
 
-### Users
+### Usuarios
 
-* `GET  /api/users` → lista usuarios (paginado 15)
-* `POST /api/users/search` → búsqueda con filtros `{ role, name, email }`
-* `POST   /api/users` → crea usuario
-* `GET    /api/users/{user}` → detalle
-* `PUT    /api/users/{user}` → actualiza
-* `DELETE /api/users/{user}` → elimina
+- `GET /api/users` → lista (paginado 15)
+- `POST /api/users/search` → búsqueda con filtros `{ role, name, email }`
+- `POST /api/users` → crea usuario
+- `GET /api/users/{id}` → detalle
+- `PUT /api/users/{id}` → actualiza
+- `DELETE /api/users/{id}` → elimina
 
-### Appointments
+### Citas
 
-* `GET  /api/appointments` → obtiene todas las citas (incluye relaciones)
-* `POST /api/appointments` → crea cita (valida solapamiento)
-* `DELETE /api/appointments/{appointment}` → elimina cita
-
----
-
-## 🔧 Componente Toast & Timezone
-
-* **ToastContainer.vue**: muestra toasts desde `useToast.js` (reactive)
-* **useToast.js**: composable de toasts (`toastSuccess`, `toastError`, `toastInfo`)
-* **TimezoneSelect.vue**: select de zonas horarias usando Intl o lista estática.
+- `GET /api/appointments` → todas las citas (con paciente y doctor)
+- `POST /api/appointments` → crea cita (valida solapamiento)
+- `DELETE /api/appointments/{id}` → elimina
 
 ---
 
-## 📝 Notas
+## Configuración de correo (Mailtrap)
 
-* Los campos `start_at` y `end_at` se almacenan como datetime y en el modelo se exponen como Carbon.
-* En el modelo `Appointment` hay atributos virtuales:
+Para pruebas de correo local usa Mailtrap. En tu `.env` configura:
 
-  * `start_at_for_api` → ISO8601 en zone America/New\_York
-  * `end_at_for_api`   → idem
-* Asegurate de configurar correctamente la zona en `.env` (`APP_TIMEZONE`).
+```
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=tu_usuario_mailtrap
+MAIL_PASSWORD=tu_password_mailtrap
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS=example@example.com
+MAIL_FROM_NAME="AppointmentApp"
+```
+
+Regístrate en [Mailtrap](https://mailtrap.io/) para obtener las credenciales.
 
 ---
 
-## 📄 Licencia
+## Configuración de broadcasting (Pusher)
 
-MIT © TU\_NOMBRE
+Para notificaciones en tiempo real (Broadcasting) usa Pusher. En `.env`:
+
+```
+BROADCAST_DRIVER=pusher
+PUSHER_APP_ID=tu_app_id
+PUSHER_APP_KEY=tu_app_key
+PUSHER_APP_SECRET=tu_app_secret
+PUSHER_APP_CLUSTER=tu_cluster
+```
+
+Y en el cliente (Vite) exporta estas variables:
+
+```env
+VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+```
+
+Regístrate en [Pusher](https://pusher.com/) y crea una app para obtener sus credenciales.
+
+---
+
+## Notas
+
+- `start_at` y `end_at` se almacenan como datetime y se exponen en zona `America/New_York`.
+- Sistema de toasts ligero sin librerías externas.
+
+---
+
+## Licencia
+
+MIT © Erick Kaito Kikuchi
