@@ -157,4 +157,4 @@ Regístrate en [Pusher](https://pusher.com/) y crea una app para obtener sus cre
 
 ## Licencia
 
-MIT © Erick Kaito Kikuchi
+MIT © Erick Kaito Kikuchi Yamamoto
