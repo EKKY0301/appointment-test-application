@@ -18,13 +18,8 @@ class AppointmentController extends Controller
     {
         $appointments = Appointment::with(['patient','doctor'])->get()
             ->map(function($appt) {
-                // Reformatear fechas a zona America/New_York
-                $appt->start_at = Carbon::parse($appt->start_at)
-                                       ->timezone('America/New_York')
-                                       ->toIso8601String();
-                $appt->end_at   = Carbon::parse($appt->end_at)
-                                       ->timezone('America/New_York')
-                                       ->toIso8601String();
+                $appt->start_at = $appt->start_at_for_api;
+                $appt->end_at   = $appt->end_at_for_api;
                 return $appt;
             });
 
@@ -43,12 +38,12 @@ class AppointmentController extends Controller
             'status'     => ['sometimes', Rule::in(['pending','responded','finished','deleted'])],
         ]);
 
-        // Convertir a zona y formato MySQL
+        // Convertir payload ISO8601 (UTC/Z) a UTC MySQL
         $start = Carbon::parse($data['start_at'])
-            ->timezone('America/New_York')
+            ->setTimezone('UTC')
             ->toDateTimeString();
         $end = Carbon::parse($data['end_at'])
-            ->timezone('America/New_York')
+            ->setTimezone('UTC')
             ->toDateTimeString();
 
         // Validar solapamiento para el mismo doctor
@@ -68,7 +63,7 @@ class AppointmentController extends Controller
             ], 422);
         }
 
-        // Crear la cita
+        // Crear la cita en UTC
         $appointment = Appointment::create([
             'patient_id' => $data['patient_id'],
             'doctor_id'  => $data['doctor_id'],
@@ -78,19 +73,18 @@ class AppointmentController extends Controller
             'status'     => $data['status'] ?? 'pending',
         ]);
 
-        // Enviar notificaciones por mail
-        try {
-            Mail::to($appointment->patient->email)
-                ->send(new ScheduledMail($appointment));
-            Mail::to($appointment->doctor->email)
-                ->send(new ScheduledMail($appointment));
-        } catch (\Throwable $e) {
-            // Loguear o manejar internamente el error de mail
-            return response()->json([
-                'error'   => 'No se pudo enviar el mail de cita programada',
-                'details' => $e->getMessage(),
-            ], 500);
-        }
+        // Enviar notificaciones por mail (fechas formateadas en modelo)
+        // try {
+        //     Mail::to($appointment->patient->email)
+        //         ->send(new ScheduledMail($appointment));
+        //     Mail::to($appointment->doctor->email)
+        //         ->send(new ScheduledMail($appointment));
+        // } catch (\Throwable $e) {
+        //     return response()->json([
+        //         'error'   => 'No se pudo enviar el mail de cita programada',
+        //         'details' => $e->getMessage(),
+        //     ], 500);
+        // }
 
         event(new ReloadAll("AppointmentCreado"));
 
@@ -102,17 +96,17 @@ class AppointmentController extends Controller
         $id = $appointment->id;
 
         // Notificar cancelación
-        try {
-            Mail::to($appointment->patient->email)
-                ->send(new CancelledMail($appointment));
-            Mail::to($appointment->doctor->email)
-                ->send(new CancelledMail($appointment));
-        } catch (\Throwable $e) {
-            return response()->json([
-                'error'   => 'No se pudo enviar el mail de cancelación',
-                'details' => $e->getMessage(),
-            ], 500);
-        }
+        // try {
+        //     Mail::to($appointment->patient->email)
+        //         ->send(new CancelledMail($appointment));
+        //     Mail::to($appointment->doctor->email)
+        //         ->send(new CancelledMail($appointment));
+        // } catch (\Throwable $e) {
+        //     return response()->json([
+        //         'error'   => 'No se pudo enviar el mail de cancelación',
+        //         'details' => $e->getMessage(),
+        //     ], 500);
+        // }
 
         event(new AppointmentDeleted($id));
         $appointment->delete();
